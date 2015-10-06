@@ -1,0 +1,17 @@
+# eclipse conf file
+.settings
+.classpath
+.project
+
+# idea conf files
+.idea
+*.iml
+*.ipr
+*.iws
+
+# building
+target
+
+# misc
+.DS_Store
+

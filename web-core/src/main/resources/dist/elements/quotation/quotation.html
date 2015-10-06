@@ -1,0 +1,115 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="quote-trip">
+
+  <style is="custom-style">
+    paper-card {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+  </style>
+
+  <template>
+
+    <paper-material elevation="0">
+      <form is="iron-form" id="quotation-form" on-iron-form-submit="submitQuotation">
+        <paper-card heading="Acheter un billet">
+          <div class="card-content">
+            <paper-input id="origin" name="origin" label="Origine*" required></paper-input>
+            <paper-input id="destination" name="destination" label="Destination*" required></paper-input>
+          </div>
+          <div class="card-actions">
+            <paper-button on-tap="handleQuoteTrip">Rechercher</paper-button>
+          </div>
+        </paper-card>
+      </form>
+    </paper-material>
+
+    <template is="dom-if" if="{{hasResult}}">
+      <paper-material elevation="0">
+        <paper-card heading="Votre voyage">
+          <div class="card-content">
+            <span>{{quotation.origin}}</span>
+            <span>{{quotation.destination}}</span> : <b><span>{{quotation.price}}</span></b> &euro;
+
+            <br/>
+            <br/> Hotels les mieux notés à
+            <span>{{quotation.to}}</span> :
+            <ul>
+              <template is="dom-repeat" items="{{quotation.recommendations}}">
+                <li>
+                  <span>{{item}}</span>
+                </li>
+              </template>
+            </ul>
+
+          </div>
+        </paper-card>
+      </paper-material>
+    </template>
+
+    <paper-dialog id="dialog" modal>
+      <h2>Erreur</h2>
+      <div>{{dialogError}}</div>
+      <div class="buttons">
+        <paper-button dialog-confirm autofocus>Fermer</paper-button>
+      </div>
+    </paper-dialog>
+
+    <iron-ajax id="ajax" handle-as="json" on-error="handleError" on-response="handleResponse"></iron-ajax>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'quote-trip',
+
+      properties: {
+        dialogError: {
+          type: String,
+          notify: true
+        },
+        quotation: {
+          type: Object,
+          notify: true
+        }
+      },
+
+      ready: function() {
+        this.hasResult = false;
+      },
+
+      handleQuoteTrip: function() {
+        this.hasResult = false;
+
+        var quotationAjax = this.$.ajax;
+        quotationAjax.url = 'api/booking/quotation&origin=' + this.$.origin.value + '&destination=' + this.$.destination.value;
+        quotationAjax.generateRequest();
+      },
+
+      handleResponse: function(request) {
+        this.quotation = request.detail.response;
+        this.hasResult = true;
+      },
+
+      handleError: function(request, error) {
+        this.hasResult = false;
+        this.dialogError = error.error;
+
+        var dialog = this.$.dialog;
+        dialog.fit();
+        dialog.open();
+      }
+    });
+  </script>
+
+</dom-module>
